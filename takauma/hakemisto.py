@@ -19,7 +19,7 @@ class Versiohakemisto(collections.OrderedDict):
     if isinstance(versio, str):
       versio = pkg_resources.parse_version(versio)
     if not isinstance(versio, pkg_resources.packaging.version.Version):
-      raise ValueError(repr(versio))
+      return False
     return next(iter(self)) <= versio
     # def __contains__
 
@@ -27,7 +27,7 @@ class Versiohakemisto(collections.OrderedDict):
     if isinstance(versio, str):
       versio = pkg_resources.parse_version(versio)
     if not isinstance(versio, pkg_resources.packaging.version.Version):
-      raise ValueError(repr(versio))
+      raise KeyError(repr(versio))
     for avain, arvo in reversed(self.items()):
       if avain <= versio:
         return arvo

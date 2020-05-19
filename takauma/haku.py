@@ -39,6 +39,8 @@ def etsi_versiot(kohde):
   versiot = {}
 
   # Etsi vanhempia versioita moduulin nimen mukaan.
+  if kohde.__module__ not in sys.modules:
+    return None
   tiedosto = sys.modules[kohde.__module__].__file__
   alku, loppu = os.path.splitext(tiedosto)
   for versioitu_tiedosto in glob.glob('-*'.join((alku, loppu))):

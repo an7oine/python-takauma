@@ -61,22 +61,32 @@ class Versio:
     Return:
       pkg_resources.packaging.version.Version
     '''
+    # Haetaan välimuistista.
     try:
       return cls._valimuisti[moduuli]
     except KeyError:
       pass
+
+    # Poimitaan versionumero moduulin polusta.
     if '-' in moduuli:
       cls._valimuisti[moduuli] = pkg_resources.parse_version(
         moduuli.split('-')[-1]
       )
       return cls._valimuisti[moduuli]
-    tiedosto = sys.modules[moduuli].__file__
+
+    # Otetaan moduulin tiedostopolku.
+    try:
+      tiedosto = sys.modules[moduuli].__file__
+    except KeyError:
+      return None
+
+    # Haetaan asennetuista paketeista, tallennetaan välimuistiin.
     try:
       cls._valimuisti[moduuli] = pkg_resources.parse_version(next(
         jakelu for jakelu, testi in cls._jakelut if testi(tiedosto)
       )._get_version())
     except StopIteration:
-      raise ValueError(repr(moduuli))
+      return None
     else:
       return cls._valimuisti[moduuli]
     # def moduulin_versio
