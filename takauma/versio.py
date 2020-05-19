@@ -30,7 +30,11 @@ class Versio:
         # Python-moduuli (esim. .../site-packages/x/y/z.py) sisältyy
         # pakettiin, mikäli se esiintyy tiedostoluettelossa.
         testi = [
-          os.path.normpath(os.path.join(jakelu.location, r.split(',')[0]))
+          os.path.realpath(
+            os.path.normpath(
+              os.path.join(jakelu.location, r.split(',')[0])
+            )
+          )
           for r in jakelu.get_metadata_lines('RECORD')
         ].__contains__
       except FileNotFoundError:
@@ -40,8 +44,8 @@ class Versio:
         # Huomaa, että `partial`-kääre vaaditaan jakelun sitomiseksi
         # funktioon sen ulkopuolelta.
         testi = functools.partial(lambda t, j: os.path.commonpath((
-          t, j.location
-        )) == j.location, j=jakelu)
+          t, os.path.realpath(j.location)
+        )) == os.path.realpath(j.location), j=jakelu)
       yield (jakelu, testi)
     # for jakelu in pkg_resources.working_set
   _jakelut = list(_jakelut())
@@ -76,7 +80,7 @@ class Versio:
 
     # Otetaan moduulin tiedostopolku.
     try:
-      tiedosto = sys.modules[moduuli].__file__
+      tiedosto = os.path.realpath(sys.modules[moduuli].__file__)
     except KeyError:
       return None
 

@@ -91,6 +91,6 @@ def etsi_versiot(kohde):
     map(versiot.get, jarjestetyt_versionumerot)
   ), (
     # Lisää nykyinen versio.
-    kohde.__versio__, kohde,
+    kohde.__versio__ or pkg_resources.parse_version('0'), kohde,
   )))
   # def etsi_versiot
