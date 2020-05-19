@@ -84,7 +84,7 @@ class Versio:
     try:
       cls._valimuisti[moduuli] = pkg_resources.parse_version(next(
         jakelu for jakelu, testi in cls._jakelut if testi(tiedosto)
-      )._get_version())
+      ).version)
     except StopIteration:
       return None
     else:
