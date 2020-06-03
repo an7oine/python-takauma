@@ -103,19 +103,21 @@ def _versiot(moduuli):
   '''
   # Kootaan olemassaolevat versiot sanakirjaan.
   versiot = {}
-  for versioitu_moduuli in (
-    _versiot_asennetussa_paketissa(moduuli)
-    if moduuli.__jakelu__.has_metadata('RECORD')
-    else _versiot_kehitettavassa_paketissa(moduuli)
-  ):
-    sys.modules[versioitu_moduuli.__name__] = versioitu_moduuli
-    try:
-      versioitu_moduuli.__loader__.exec_module(versioitu_moduuli)
-    except: # pylint: disable=bare-except
-      sys.modules.pop(versioitu_moduuli.__name__)
-    else:
-      versiot[versioitu_moduuli.__versio__] = versioitu_moduuli
-    # for versioitu_moduuli
+  if moduuli.__jakelu__ is not None:
+    for versioitu_moduuli in (
+      _versiot_asennetussa_paketissa(moduuli)
+      if moduuli.__jakelu__.has_metadata('RECORD')
+      else _versiot_kehitettavassa_paketissa(moduuli)
+    ):
+      sys.modules[versioitu_moduuli.__name__] = versioitu_moduuli
+      try:
+        versioitu_moduuli.__loader__.exec_module(versioitu_moduuli)
+      except: # pylint: disable=bare-except
+        sys.modules.pop(versioitu_moduuli.__name__)
+      else:
+        versiot[versioitu_moduuli.__versio__] = versioitu_moduuli
+      # for versioitu_moduuli
+    # if moduuli.__jakelu__ is not None
 
   # Muodosta ja aseta versiohakemisto.
   jarjestetyt_versionumerot = sorted(versiot)
