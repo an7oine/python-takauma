@@ -11,11 +11,27 @@ class Versiohakemisto(collections.OrderedDict):
   vastaavan, saman tai aiemman version.
 
   Sanakirjaan kuuluminen määräytyy sen mukaan, sisältääkö
-  se vähintään yhden kysyttyä avainta vastaavan tai vanhemman
+  se vähintään yhden kysyttyä avainta vastaavan tai sitä vanhemman
   version.
+
+  Avaimet "__min__" ja "__max__" noutavat vanhimman / uusimman
+  saatavilla olevan version.
+
+  Sisältää myös määreet `__min__` ja `__max__`, jotka viittaavat
+  vanhimpaan ja uusimpaan saatavilla olevaan versionumeroon.
   '''
 
+  @property
+  def __min__(self):
+    return next(iter(self.keys()), None)
+
+  @property
+  def __max__(self):
+    return next(reversed(self.keys()), None)
+
   def __contains__(self, versio):
+    if versio in ('__min__', '__max__'):
+      return bool(self)
     if isinstance(versio, str):
       versio = pkg_resources.parse_version(versio)
     if not isinstance(versio, pkg_resources.packaging.version.Version):
@@ -24,7 +40,12 @@ class Versiohakemisto(collections.OrderedDict):
     # def __contains__
 
   def __getitem__(self, versio):
-    if isinstance(versio, str):
+    if versio in ('__min__', '__max__'):
+      try: return next((
+        iter if versio == '__min__' else reversed
+      )(self.values()))
+      except StopIteration: pass
+    elif isinstance(versio, str):
       versio = pkg_resources.parse_version(versio)
     if not isinstance(versio, pkg_resources.packaging.version.Version):
       raise KeyError(repr(versio))
