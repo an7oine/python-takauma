@@ -28,7 +28,7 @@ class Sisallonlataaja(importlib.machinery.SourceFileLoader):
   # class Sisallonlataaja
 
 
-def _versiot_kehitettavassa_paketissa(moduuli):
+def _kehitysversiot(moduuli):
   '''
   Etsi git-tietovarastosta kaikki versiointimäärityksen mukaiset
   aiemmat versiot moduulin määrittelevästä tiedostosta.
@@ -63,10 +63,10 @@ def _versiot_kehitettavassa_paketissa(moduuli):
     versioitu_moduuli.__versio__ = pkg_resources.parse_version(versio)
     yield versioitu_moduuli
     # for versio, tiedostosisalto in tiedostoversiot
-  # def _versiot_kehitettavassa_paketissa
+  # def _kehitysversiot
 
 
-def _versiot_asennetussa_paketissa(moduuli):
+def _asennetut_versiot(moduuli):
   '''
   Etsi levyltä kaikki versiot moduulin määrittelevästä tiedostosta.
 
@@ -93,7 +93,7 @@ def _versiot_asennetussa_paketissa(moduuli):
     versioitu_moduuli.__versio__ = versio
     yield versioitu_moduuli
     # for versioitu_tiedosto
-  # def _versiot_asennetussa_paketissa
+  # def _asennetut_versiot
 
 
 def _versiot(moduuli):
@@ -104,11 +104,11 @@ def _versiot(moduuli):
   # Kootaan olemassaolevat versiot sanakirjaan.
   versiot = {}
   if moduuli.__jakelu__ is not None:
-    for versioitu_moduuli in (
-      _versiot_asennetussa_paketissa(moduuli)
-      if moduuli.__jakelu__.has_metadata('RECORD')
-      else _versiot_kehitettavassa_paketissa(moduuli)
-    ):
+    def _versiot():
+      yield from _asennetut_versiot(moduuli)
+      try: yield from _kehitysversiot(moduuli)
+      except: pass
+    for versioitu_moduuli in _versiot():
       sys.modules[versioitu_moduuli.__name__] = versioitu_moduuli
       try:
         versioitu_moduuli.__loader__.exec_module(versioitu_moduuli)
