@@ -33,19 +33,27 @@ def _kehitysversiot(moduuli):
   Etsi git-tietovarastosta kaikki versiointimäärityksen mukaiset
   aiemmat versiot moduulin määrittelevästä tiedostosta.
 
-  Edellyttää `git-versiointi`-paketin asennusta.
+  Edellyttää `git-versiointi`-paketin (v1.4.9+) asennusta.
   '''
   # pylint: disable=import-error
   try:
-    pkg_resources.require('git-versiointi>=1.4.4')
+    pkg_resources.require('git-versiointi>=1.4.9')
   except pkg_resources.DistributionNotFound:
     return
 
   from versiointi.tiedostot import tiedostoversiot
-  from versiointi.versiointi import Versiointi
+  from versiointi import tarkista_git_versiointi
 
+  # Alusta versiointimääritys.
+  tarkista_git_versiointi(
+    moduuli.__jakelu__,
+    'git_versiointi',
+    moduuli.__jakelu__.location + '/setup.py',
+  )
+
+  # Käy läpi annetun moduulin tallennetut versiot.
   for versio, tiedostosisalto in tiedostoversiot(
-    Versiointi(moduuli.__jakelu__.location),
+    moduuli.__jakelu__.git_versiointi,
     os.path.relpath(
       os.path.realpath(moduuli.__file__),
       os.path.realpath(moduuli.__jakelu__.location),
