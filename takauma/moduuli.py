@@ -119,14 +119,21 @@ def _versiot(moduuli):
       # for versioitu_moduuli
     # if moduuli.__jakelu__ is not None
 
-  # Muodosta ja aseta versiohakemisto.
+  # Mikäli nykyistä versionumeroa ei löydy sanakirjasta,
+  # lisätään se.
+  nykyinen_versio = moduuli.__versio__ or pkg_resources.parse_version('0')
+  if nykyinen_versio not in versiot:
+    versiot[nykyinen_versio] = moduuli
+
+  # Järjestä aiemmat versionumerot.
   jarjestetyt_versionumerot = sorted(versiot)
+
+  # Muodosta ja aseta versiohakemisto.
   return Versiohakemisto((*zip(
     jarjestetyt_versionumerot,
     map(versiot.get, jarjestetyt_versionumerot)
   ), (
-    # Lisää nykyinen versio.
-    moduuli.__versio__ or pkg_resources.parse_version('0'),
-    moduuli,
+    # Lisää nykyinen versio aina (myös) avaimella "__max__".
+    '__max__', moduuli,
   )))
   # def _versiot

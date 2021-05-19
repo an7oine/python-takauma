@@ -50,6 +50,8 @@ class Versiohakemisto(collections.OrderedDict):
     if not isinstance(versio, pkg_resources.packaging.version.Version):
       raise KeyError(repr(versio))
     for avain, arvo in reversed(self.items()):
+      if avain == '__max__':
+        continue
       if avain <= versio:
         return arvo
     raise KeyError(repr(versio))
