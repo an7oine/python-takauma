@@ -4,6 +4,7 @@
 import importlib
 import sys
 import threading
+import warnings
 
 import mmaare
 
@@ -74,5 +75,11 @@ sys.meta_path.insert(0, Etsija())
 
 
 # Lisää määreet heti aiemmin tuotuihin moduuleihin.
-for aiemmin_tuotu_moduuli in sys.modules.values():
-  tuotu(aiemmin_tuotu_moduuli)
+# Ohitetaan mahdolliset varoitukset __getattr__-
+# funktion ylikuormittamisen yhteydessä.
+# Huomaa, että kaikki Python-moduulit eivät salli
+# tämän funktion ylikuormittamista.
+with warnings.catch_warnings():
+  warnings.simplefilter('ignore')
+  for aiemmin_tuotu_moduuli in sys.modules.values():
+    tuotu(aiemmin_tuotu_moduuli)
