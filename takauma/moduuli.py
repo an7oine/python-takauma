@@ -7,14 +7,14 @@ import os
 import re
 import sys
 
-import pkg_resources
+from packaging.version import parse
 
 from .hakemisto import Versiohakemisto
 
 
 def _versio(moduuli):
   jakelu = moduuli.__jakelu__
-  return jakelu.parsed_version if jakelu is not None else None
+  return parse(jakelu.version) if jakelu is not None else None
   # def _versio
 
 
@@ -37,26 +37,29 @@ def _kehitysversiot(moduuli):
   '''
   # pylint: disable=import-error
   try:
-    pkg_resources.require('git-versiointi>=1.4.9')
-  except pkg_resources.DistributionNotFound:
+    if parse(importlib.metadata.version('git-versiointi')) < parse('1.4.9'):
+      return
+  except importlib.metadata.PackageNotFoundError:
     return
 
   from versiointi.tiedostot import tiedostoversiot
   from versiointi import tarkista_git_versiointi
 
+  jakelu = moduuli.__jakelu__
+
   # Alusta versiointimääritys.
   tarkista_git_versiointi(
-    moduuli.__jakelu__,
+    jakelu,
     'git_versiointi',
-    moduuli.__jakelu__.location + '/setup.py',
+    str(jakelu.locate_file('setup.py')),
   )
 
   # Käy läpi annetun moduulin tallennetut versiot.
   for versio, tiedostosisalto in tiedostoversiot(
-    moduuli.__jakelu__.git_versiointi,
+    jakelu.git_versiointi,
     os.path.relpath(
       os.path.realpath(moduuli.__file__),
-      os.path.realpath(moduuli.__jakelu__.location),
+      os.path.realpath(jakelu.locate_file('.')),
     )
   ):
     nimi = '-'.join((moduuli.__name__, str(versio)))
@@ -68,7 +71,7 @@ def _kehitysversiot(moduuli):
       tiedostosisalto
     ))
     versioitu_moduuli = importlib.util.module_from_spec(spec)
-    versioitu_moduuli.__versio__ = pkg_resources.parse_version(versio)
+    versioitu_moduuli.__versio__ = parse(versio)
     yield versioitu_moduuli
     # for versio, tiedostosisalto in tiedostoversiot
   # def _kehitysversiot
@@ -87,7 +90,7 @@ def _asennetut_versiot(moduuli):
 
   alku, loppu = os.path.splitext(tiedosto)
   for versioitu_tiedosto in glob.glob('-*'.join((alku, loppu))):
-    versio = pkg_resources.parse_version(re.sub(
+    versio = parse(re.sub(
       rf'-(.*){loppu}', r'\1', versioitu_tiedosto.replace(alku, '')
     ))
     nimi = '-'.join((moduuli.__name__, str(versio)))
@@ -129,7 +132,7 @@ def _versiot(moduuli):
 
   # Mikäli nykyistä versionumeroa ei löydy sanakirjasta,
   # lisätään se.
-  nykyinen_versio = moduuli.__versio__ or pkg_resources.parse_version('0')
+  nykyinen_versio = moduuli.__versio__ or parse('0')
   if nykyinen_versio not in versiot:
     versiot[nykyinen_versio] = moduuli
 

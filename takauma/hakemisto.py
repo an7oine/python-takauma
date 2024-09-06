@@ -2,7 +2,7 @@
 
 import collections
 
-import pkg_resources
+from packaging.version import parse, Version
 
 
 class Versiohakemisto(collections.OrderedDict):
@@ -33,8 +33,8 @@ class Versiohakemisto(collections.OrderedDict):
     if versio in ('__min__', '__max__'):
       return bool(self)
     if isinstance(versio, str):
-      versio = pkg_resources.parse_version(versio)
-    if not isinstance(versio, pkg_resources.packaging.version.Version):
+      versio = parse(versio)
+    if not isinstance(versio, Version):
       return False
     return next(iter(self)) <= versio
     # def __contains__
@@ -46,8 +46,8 @@ class Versiohakemisto(collections.OrderedDict):
       )(self.values()))
       except StopIteration: pass
     elif isinstance(versio, str):
-      versio = pkg_resources.parse_version(versio)
-    if not isinstance(versio, pkg_resources.packaging.version.Version):
+      versio = parse(versio)
+    if not isinstance(versio, Version):
       raise KeyError(repr(versio))
     for avain, arvo in reversed(self.items()):
       if avain == '__max__':
