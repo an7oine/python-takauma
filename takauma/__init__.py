@@ -33,38 +33,40 @@ class Lataaja:
   def __init__(self, lataaja):
     self.lataaja = lataaja
 
-  def load_module(self, fullname):
-    module = self.lataaja.load_module(fullname)
-    tuotu(module)
-    return module
+  def create_module(self, spec):
+    return self.lataaja.create_module(spec)
+
+  def exec_module(self, module):
+    with warnings.catch_warnings(record=True) as warning_list:
+      self.lataaja.exec_module(module)
+      tuotu(module)
+    for warning in warning_list:
+      warnings.warn(warning.message, warning.category, stacklevel=3)
+    # def exec_module
 
   # class Lataaja
 
 
-class Etsija:
-
+class Etsija(importlib.abc.MetaPathFinder):
   def __init__(self):
     self.kaynnissa = set()
 
-  def find_module(self, fullname, path=None):
+  def find_spec(
+    self, fullname, path, target=None
+  ) -> importlib._bootstrap.ModuleSpec:
     with _lukko:
       if fullname in self.kaynnissa:
         return None
       self.kaynnissa.add(fullname)
       try:
-        try:
-          lataaja = importlib.util.find_spec(fullname).loader
-        except (ImportError, AttributeError):
-          # pylint: disable=deprecated-method
-          lataaja = importlib.find_loader(fullname, path)
-        if lataaja:
-          return Lataaja(lataaja)
-        else:
-          return None
+        spec = importlib.util.find_spec(fullname)
+        if spec and spec.loader:
+          spec.loader = Lataaja(spec.loader)
+        return spec
       finally:
         self.kaynnissa.remove(fullname)
       # with _lukko
-    # def find_module
+    # def find_spec
 
   # class Etsija
 
